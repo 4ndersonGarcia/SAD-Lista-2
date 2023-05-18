@@ -17,11 +17,16 @@ w = st.sidebar.multiselect('Buy', ['milk', 'apples', 'potatoes'])
 st.write(w)
 
 ###
-media_escola = st.sidebar.checkbox("1)edia de idade da escola GP")
-moda_endereco = st.sidebar.checkbox("2)Moda dos endereços da escola MS")
-mediana_tempo_gp = st.sidebar.checkbox("3)Mediana de tempo da escola GP")
-desvio_pad = st.sidebar.checkbox("4)desvio padrão da idade dos alunos que têm apoio educacional extra na escola MS")
-
+media_escola = st.sidebar.checkbox("1")
+moda_endereco = st.sidebar.checkbox("2")
+mediana_tempo_gp = st.sidebar.checkbox("3")
+desvio_pad_ms = st.sidebar.checkbox("4")
+media_tempo = st.sidebar.checkbox("5")
+motivo = st.sidebar.checkbox("6")
+mediana_falta = st.sidebar.checkbox("7")
+nivel_saude = st.sidebar.checkbox("8")
+extra_ok = st.sidebar.checkbox("9")
+alcohol_c = st.sidebar.checkbox("10")
 ###
 gsheets_show_id = st.sidebar.radio("Selecione o Dataset", ("Matemática", "Português"))
 
@@ -95,14 +100,19 @@ if show_dataset:
 
 
 if media_escola:
-    st.subheader("Media de idade dos alunos por escola")
+    st.subheader("1. Qual é a média de idade dos alunos na escola GP?")
     m_idade_gp = sum(data[data.school == 'GP']['age']) / len(data[data.school == 'GP']['age'])
-    m_idade_ms = sum(data[data.school == 'Ms']['age']) / len(data[data.school == 'MS']['age'])
-    st.write(m_idade_gp)
+    m_idade_ms = sum(data[data.school == 'MS']['age']) / len(data[data.school == 'MS']['age'])
+    
+    st.line_chart(pd.Series(data[data.school == 'GP']['age']).rolling(window=3).mean())
+    st.write(f"Media: {m_idade_gp}")
 
+
+
+    
 
 if moda_endereco:
-    #st.subheader("Moda dos endereçõs da escola MS")
+    st.subheader("2. Qual é a moda do endereço dos alunos na escola MS?")
     #moda_gp = data[data.school == 'GP']['address'].mode()
     #
     #if moda_gp[0] == 'U':
@@ -111,18 +121,70 @@ if moda_endereco:
     #    st.write("Rural")
 
     moda_ms = data[data.school == 'MS']['address'].mode()
-    
+
     if moda_ms[0] == 'U':
         st.write("Urbano")
     elif moda_ms[0] == 'R':
-        st.write("Rural")    
+        st.write("Rural")   
+    
+    st.dataframe(data[data.school == 'MS']['address'])
+
+    
+    
+
+    
 
 if mediana_tempo_gp:
-    st.write("Mediana do tempo gasto na viagem pelos alunos da escola GP")
+    st.subheader("3. Qual é a mediana do tempo de viagem dos alunos que estudam na escola GP?")
     mediana_gp = data[data.school == 'GP']['traveltime'].median()
     mediana_ms = data[data.school == 'GP']['traveltime'].median()
     st.write(mediana_gp)
+    st.line_chart(pd.Series(mediana_gp))
 
-    if desvio_pad_ms:
-        gp_extra = data[data.school == 'MS']['activities' == 'yes']
-        st.write(gp_extra)
+
+if desvio_pad_ms:
+        st.subheader("4. Qual é o desvio padrão da idade dos alunos que têm apoio educacional extra na escola MS?")
+        ms_apoio = data[data.school == 'MS'][data.schoolsup == 'yes']
+        desvio_p = ms_apoio['age'].std()
+        st.write(desvio_p)
+
+if media_tempo:
+    st.subheader("5. Qual é a média do tempo semanal de estudo dos alunos cujos pais estão separados na escola GP?")
+    dados_p_media = data[data.school == 'GP'][data.Pstatus =='A']
+    media_dados = sum(dados_p_media['age']) / len(dados_p_media['age'])
+    st.write(media_dados)
+
+    
+
+if motivo:
+    st.subheader("6. Qual é a moda do motivo pelo qual os alunos escolheram a escola MS?")
+    moda_motivo = data[data.school == 'MS']['reason'].mode()
+    st.write(moda_motivo[0])
+
+if mediana_falta:
+    st.subheader("7. Qual é a mediana do número de faltas dos alunos que frequentam a escola GP?")
+    mediana_f = data[data.school == 'GP']['absences'].median()
+    st.write(mediana_f)
+    
+
+if nivel_saude:
+    st.subheader("8. Qual é o desvio padrão do nível de saúde dos alunos que frequentam atividades extracurriculares na escola MS?")
+    data_desvio = data[data.school == 'MS'][data.activities == 'yes']
+    st.write(data_desvio['health'].std())
+    st.line_chart(pd.Series(data_desvio['health']).rolling(window=3).mean())
+    st.write(f"Desvio Pad.: {data_desvio['health'].std()}")
+
+
+
+if extra_ok:
+    st.subheader("9. Quantos alunos já cumpriram as horas extracurriculares?")
+    ext = len(data[data.activities == 'yes'])
+    st.write(ext)
+
+
+if alcohol_c:
+    st.subheader("10. Qual é a moda do consumo de álcool dos alunos da escola MS durante a semana de trabalho?")
+    alc = data[data.school == 'MS']['Dalc'].mode()
+    st.line_chart(pd.Series(data[data.school == 'MS']['Dalc']).rolling(window=3).mean())
+    st.write(f"Media: {alc[0]}")
+
